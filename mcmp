@@ -5,7 +5,7 @@ CMD="$1"
 shift
 
 if [ -z "$CMD" ]; then
-    echo "Usage: mcpf <script> [args...]"
+    echo "Usage: mcmp <script> [args...]"
     echo "Available commands:"
     for f in "$SCRIPT_DIR"/*; do
         echo "  $(basename "${f%.*}")"

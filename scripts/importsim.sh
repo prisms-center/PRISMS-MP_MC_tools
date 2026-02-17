@@ -49,7 +49,7 @@ while [ -n "$1" ]; do
 	case $input in
 
 	-h | --help)
-		echo "PRISMS-PF file organization for Materials Commons importing"
+		echo "PRISMS-MP file organization for Materials Commons importing"
 		echo
 		echo "Usage: $0 [options] SRC_DIR DST_DIR"
 		echo "Options:"

@@ -1,7 +1,7 @@
-# Makefile for installing only the mcpf dispatcher script
+# Makefile for installing only the mcmp dispatcher script
 
 INSTALL_DIR := $(HOME)/.local/bin
-SCRIPT_NAME := mcpf
+SCRIPT_NAME := mcmp
 
 .PHONY: install uninstall
 
