@@ -49,7 +49,7 @@ while [ -n "$1" ]; do
 	case $input in
 
 	-h | --help)
-		echo "PRISMS-PF file organization for Materials Commons importing"
+		echo "PRISMS-MP file organization for Materials Commons importing"
 		echo
 		echo "Usage: $0 [options] SRC_DIR DST_DIR"
 		echo "Options:"
@@ -355,6 +355,75 @@ fi
 copy_or_move_files "*.cc,*.c,*.cpp,*.cxx,*.h,*.in,*.hpp,*.py,*.sh,*.json,*.yaml,*.yml" "${SRC_DIR}" "${CODE_DIR}" "ON"
 copy_or_move_files "solution*.vtk,solution*.vtu,solution*.pvtu" "${SRC_DIR}" "${OUTPUT_DIR}" "${COPY_OUTPUT}"
 copy_or_move_files "*.md" "${SRC_DIR}" "${DST_DIR}" "ON"
+
+# ------------------------------------------------------------------
+# Handle any directories specified in the selected .prm file that hold
+# additional output/post‑processing files (typically
+# "results_cp"/"results_pf").  The directory names are identified by
+# lines such as:
+#     set CP Output Directory                             = results_cp
+#     set PF Output directory = results_pf
+#
+# 1.  Extract the right‑hand side of the ``=`` (strip all spaces).
+# 2.  Look for those directories under the original SRC_DIR.
+# 3.  Recursively move/copy ``.vtk``, ``.vtu`` and ``.pvtu`` files into
+#     OUTPUT_DIR.
+# 4.  Any remaining files found underneath the same directory tree are
+#     transferred to POSTPROCESS_DIR instead.
+# ------------------------------------------------------------------
+if [ -n "${selected_prm_file:-}" ]; then
+    # helper to grab a value after ``=`` and remove whitespace
+    get_prm_value() {
+        local pattern="$1" file="$2"
+        grep -i "^[[:space:]]*${pattern}" "${file}" | \
+            sed -E 's/.*=[[:space:]]*//; s/[[:space:]]//g' | head -n1
+    }
+
+    cp_dir=$(get_prm_value "set[[:space:]]\+CP[[:space:]]\+Output[[:space:]]\+Directory" "${selected_prm_file}")
+    pf_dir=$(get_prm_value "set[[:space:]]\+PF[[:space:]]\+Output[[:space:]]\+directory" "${selected_prm_file}")
+
+    for dir_name in "${cp_dir}" "${pf_dir}"; do
+        # skip empty results
+        [ -z "${dir_name}" ] && continue
+
+        src_path="${SRC_DIR}/${dir_name}"
+        if [ -d "${src_path}" ]; then
+            color_echo ${INFO} "Processing additional output directory: ${src_path}"
+
+            # copy/move the vtk/vtu/pvtu files first, preserving the
+            # tree under a subdirectory named after the original folder
+            find "${src_path}" -type f \( -iname '*.vtk' -o -iname '*.vtu' -o -iname '*.pvtu' \) -print0 |
+            while IFS= read -r -d '' file; do
+                # strip leading path so we can recreate it later
+                rel="${file#${src_path}/}"
+                dest="${OUTPUT_DIR}/${dir_name}/${rel}"
+                mkdir -p "$(dirname "$dest")"
+                if [ "${COPY_OUTPUT}" != "ON" ]; then
+                    mv -- "${file}" "$dest"
+                else
+                    cp -- "${file}" "$dest"
+                fi
+            done
+
+            # then handle anything left over in the same tree;
+            # for postprocess we flatten the tree (only keep the top‑level
+            # directory name, not the intermediate path)
+            find "${src_path}" -type f ! \( -iname '*.vtk' -o -iname '*.vtu' -o -iname '*.pvtu' \) -print0 |
+            while IFS= read -r -d '' file; do
+                base=$(basename "$file")
+                dest="${POSTPROCESS_DIR}/${base}"
+                mkdir -p "$(dirname "$dest")"
+                if [ "${COPY_OUTPUT}" != "ON" ]; then
+                    mv -- "${file}" "$dest"
+                else
+                    cp -- "${file}" "$dest"
+                fi
+            done
+        else
+            color_echo ${WARN} "Directory '${src_path}' defined in .prm not found. Skipping."
+        fi
+    done
+fi
 
 # Special case: Handle single file copy for CMakeLists.txt and integratedFields.txt
 if [ -f "${SRC_DIR}/CMakeLists.txt" ]; then

@@ -1,28 +1,28 @@
-# PRISMS-PF_MC_tools
-**Tools for integration between PRISMS-PF and Materials Commons**
+# PRISMS-MP_MC_tools
+**Tools for integration between PRISMS-MP and Materials Commons**
 
 The script files in this repository can be used to assist with automation of the following tasks:
-- Locally importing PRISMS-PF code files and simulation results into a Materials Commons project directory
+- Locally importing PRISMS-MP code files and simulation results into a Materials Commons project directory
 - For each calculation (simulation) directory, sorting the different file types into different subdirectories
 - Creating a yaml file containing data and metadata for each simulation and adding these data to an ETL spreadsheet associated with an Experiment in Materials Commons
-- Generating image frames and movies for different field variables within a phase-field simulation
+- Generating image frames and movies for different field variables within a multi-physics simulation
 
-## Installing the PRISMS-PF_MC_tools
+## Installing the PRISMS-MP_MC_tools
 
 Clone the tools repository
 ```
-$ git clone https://github.com/prisms-center/PRISMS-PF_MC_tools.git
+$ git clone https://github.com/prisms-center/PRISMS-MP_MC_tools.git
 ```
-Go to the directory ```PRISMS-PF_MC_tools``` and install the tools
+Go to the directory ```PRISMS-MP_MC_tools``` and install the tools
 ```
-$ cd PRISMS-PF_MC_tools
+$ cd PRISMS-MP_MC_tools
 ```
 ```
 $ make install
 ```
 After the tools have been installed you should be able to run them from any directory. Type
 ```
-$ mcpf
+$ mcmp
 ```
 to see the available tools. 
 
@@ -30,13 +30,13 @@ To uninstall the tools, type
 ```
 $ make uninstall
 ```
-from the ```PRISMS-PF_MC_tools``` directory.
+from the ```PRISMS-MP_MC_tools``` directory.
 
 To take full advantage of these tools you should:
 
 1) [Create an account in Materials Commons](https://materialscommons.org/register) if you do not already have one
-2) [Install and configure the Materials Commons Command Line Interface (CLI)](https://materials-commons.github.io/materials-commons-cli/html/install.html) in the  computer where you usually run PRISMS-PF.
-3) Create a *project* directory in your computer to compile all the data files to be uploaded into a Materials Commons *project*. To be able to use the CLI, the name of the Materials Commons project should match that of the project locally. Read more about Materials Commons projects [here](https://materialscommons.org/docs/docs/getting-started/). It is recommended that the project directory is outside you phaseField directory.
+2) [Install and configure the Materials Commons Command Line Interface (CLI)](https://materials-commons.github.io/materials-commons-cli/html/install.html) in the  computer where you usually run PRISMS-MP.
+3) Create a *project* directory in your computer to compile all the data files to be uploaded into a Materials Commons *project*. To be able to use the CLI, the name of the Materials Commons project should match that of the project locally. Read more about Materials Commons projects [here](https://materialscommons.org/docs/docs/getting-started/). It is recommended that the project directory is outside you multiPhysics directory.
 4) Within the project directory, create a corresponding project within Materials Commons by typing
 ```
 $ mc init
@@ -48,7 +48,7 @@ All of the scripts and commands below described below should be run under your *
 The script <code>importsim.sh</code> copies data from a source directory where the simulation code, input and results files are located into a new destination directory within your project directory.
 Usage
 ```
-$ mcpf importsim --copy=<ON/OFF> <source directory> <destination directory>
+$ mcmp importsim --copy=<ON/OFF> <source directory> <destination directory>
 ```
 This will copy most of the contents of <code>\<source directory\></code> into <code>\<destination directory\></code>, organizing the files in the following way
 
@@ -78,7 +78,7 @@ Options:
 The script <code>generate_yaml.py</code> parses the <code>parameters.prm</code> file, extracts key-value-type triples, and generates a yaml-type file with the data.
 Usage
 ```
-$ mcpf generate_yaml <simulation directory> 
+$ mcmp generate_yaml <simulation directory> 
 ```
 The script requires the python packages <code>re</code>, <code>ruamel.yaml</code>, and <code>argparse</code> to run. The yaml file (<code>simlog.yaml</code>) will be generated in the <code>\<simulation directory\></code>.
 
@@ -87,7 +87,7 @@ The script requires the python packages <code>re</code>, <code>ruamel.yaml</code
 The script <code>plot_series</code> uses the LLNL [visit](https://www.visitusers.org/index.php?title=Using_CLI) CLI to generate 2D pseudocolor frames (in png format)from a series of simulation's vtu/vtk files at different time increments. The user can specify the fields for which to generate the frames.
 Usage
 ```
-$ mcpf plot_series <var1> <var2> ... <simulation directory>
+$ mcmp plot_series <var1> <var2> ... <simulation directory>
 ```
 This script requires python packages <code>os</code>, <code>sys</code> and <code>visit</code>.
 
@@ -95,7 +95,7 @@ The script <code>make_movies</code> uses the [ffmpeg](https://ffmpeg.org/) packa
 
 Usage
 ```
-$ mcpf make_movies <var1> <var2> ... <simulation directory>
+$ mcmp make_movies <var1> <var2> ... <simulation directory>
 ```
 The list of variables, \<var1\> \<var2\> ... \<varN\>, must only include variables for which a set of images (created using <code>plot_series</code>) already exist. 
 
@@ -111,7 +111,7 @@ The script <code>add_to_spreadsheet</code> does the following tasks:
 
 Usage
 ```
-$ mcpf add_to_spreadsheet <simulation directory> <etl filename.xlsx>
+$ mcmp add_to_spreadsheet <simulation directory> <etl filename.xlsx>
 ```
 This script requires python packages <code>os</code>, <code>sys</code> and <code>yaml</code>, and <code>pandas</code>.
 
